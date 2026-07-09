@@ -6,10 +6,23 @@ const gorevListesi = document.getElementById("gorev-listesi");
 const hafizaListesi = document.getElementById("hafiza-listesi");
 const onerilenlerKutusu = document.getElementById("onerilenler-kutusu");
 
-document.addEventListener("DOMContentLoaded", verileriYukle);
+document.addEventListener("DOMContentLoaded", () => {
+  verileriYukle();
+  updateTaskStats();
+});
+
 eklemeButonu.addEventListener("click", gorevEkle);
 tumunuSilButonu.addEventListener("click", tumGorevleriCopeAt);
 kutuyuBosaltButonu.addEventListener("click", copKutusunuBosalt);
+
+function updateTaskStats() {
+  const aktifGorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
+  const toplam = aktifGorevler.length;
+  const tamamlanan = aktifGorevler.filter(g => g.tamamlandi).length;
+
+  document.getElementById("total-tasks").textContent = `${toplam} Görev`;
+  document.getElementById("completed-tasks").textContent = `${tamamlanan} Tamamlandı`;
+}
 
 gorevGirisi.addEventListener("keypress", function (etkinlik) {
   if (etkinlik.key === "Enter") {
@@ -38,12 +51,8 @@ gorevGirisi.addEventListener("input", function() {
     eslesenler.forEach(gorev => {
       const oneriDiv = document.createElement("div");
       oneriDiv.classList.add("oneri-elemani");
-
-      // 1. Regex düzeltildi + özel karakterler escape edildi
       const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(${escapeRegex(arananMetin)})`, "gi");
-      
-      // 2. XSS koruması: textContent kullan, sadece strong kısmını innerHTML yap
       const tempDiv = document.createElement("div");
       const parts = gorev.split(regex);
       parts.forEach(part => {
@@ -82,28 +91,47 @@ function gorevEkle() {
     alert("Lütfen bir görev yazın!");
     return;
   }
-  const yeniId = Date.now().toString(); // 3. Her göreve unique ID
-  listeyeGorevEkleArayuz({ id: yeniId, metin: gorevMetni, tamamlandi: false });
-  goreviKaydet({ id: yeniId, metin: gorevMetni, tamamlandi: false });
+  const simdi = new Date();
+  const gun = String(simdi.getDate()).padStart(2, '0');
+  const ay = String(simdi.getMonth() + 1).padStart(2, '0');
+  const yil = simdi.getFullYear();
+  const saat = String(simdi.getHours()).padStart(2, '0');
+  const dakika = String(simdi.getMinutes()).padStart(2, '0');
+  const formatliTarih = `${gun}.${ay}.${yil} ${saat}:${dakika}`;
+
+  const yeniId = Date.now().toString();
+  const yeniGorev = { id: yeniId, metin: gorevMetni, tamamlandi: false, tarih: formatliTarih };
+
+  listeyeGorevEkleArayuz(yeniGorev);
+  goreviKaydet(yeniGorev);
+  
   gorevGirisi.value = "";
   onerilenlerKutusu.style.display = "none";
   gorevGirisi.focus();
+  updateTaskStats();
 }
 
 function listeyeGorevEkleArayuz(gorevObj) {
   const li = document.createElement("li");
-  li.dataset.id = gorevObj.id; // ID'yi DOM'a yaz
+  li.dataset.id = gorevObj.id;
   
   const metinAlani = document.createElement("span");
-  metinAlani.textContent = gorevObj.metin; // 4. XSS koruması için textContent
+  metinAlani.textContent = gorevObj.metin;
   if (gorevObj.tamamlandi) {
     metinAlani.classList.add("tamamlandi");
   }
   li.appendChild(metinAlani);
+  if (gorevObj.tarih) {
+    const tarihAlani = document.createElement("span");
+    tarihAlani.classList.add("gorev-tarihi");
+    tarihAlani.textContent = gorevObj.tarih;
+    li.appendChild(tarihAlani);
+  }
 
   metinAlani.addEventListener("click", function () {
     metinAlani.classList.toggle("tamamlandi");
     durumGuncelle(gorevObj.id, metinAlani.classList.contains("tamamlandi"));
+    updateTaskStats();
   });
 
   metinAlani.addEventListener("dblclick", function () {
@@ -122,6 +150,7 @@ function listeyeGorevEkleArayuz(gorevObj) {
   silButonu.addEventListener("click", function () {
     li.remove();
     gorevHafizayaTasi(gorevObj.id);
+    updateTaskStats();
   });
 
   li.appendChild(silButonu);
@@ -138,6 +167,12 @@ function hafizaListesineEkleArayuz(gorevObj) {
     metinAlani.classList.add("tamamlandi");
   }
   li.appendChild(metinAlani);
+  if (gorevObj.tarih) {
+    const tarihAlani = document.createElement("span");
+    tarihAlani.classList.add("gorev-tarihi");
+    tarihAlani.textContent = gorevObj.tarih;
+    li.appendChild(tarihAlani);
+  }
 
   const butonGrubu = document.createElement("div");
   butonGrubu.classList.add("buton-grubu");
@@ -148,6 +183,7 @@ function hafizaListesineEkleArayuz(gorevObj) {
   geriAlButonu.addEventListener("click", function () {
     li.remove();
     hafizadanGeriYukle(gorevObj.id);
+    updateTaskStats();
   });
 
   const kesinSilButonu = document.createElement("button");
@@ -156,6 +192,7 @@ function hafizaListesineEkleArayuz(gorevObj) {
   kesinSilButonu.addEventListener("click", function () {
     li.remove();
     hafizadanTamamenSil(gorevObj.id);
+    updateTaskStats();
   });
 
   butonGrubu.appendChild(geriAlButonu);
@@ -200,6 +237,7 @@ function tumGorevleriCopeAt() {
     localStorage.setItem("silinenler", JSON.stringify(silinenler));
     localStorage.removeItem("gorevler");
     gorevListesi.innerHTML = "";
+    updateTaskStats();
   }
 }
 
@@ -214,6 +252,7 @@ function copKutusunuBosalt() {
   if (onay) {
     hafizaListesi.innerHTML = "";
     localStorage.removeItem("silinenler");
+    updateTaskStats();
   }
 }
 
@@ -230,6 +269,7 @@ function gorevHafizayaTasi(id) {
   localStorage.setItem("silinenler", JSON.stringify(silinenler));
 
   hafizaListesineEkleArayuz(tasinacakGorev);
+  updateTaskStats();
 }
 
 function hafizadanGeriYukle(id) {
@@ -240,14 +280,19 @@ function hafizadanGeriYukle(id) {
   silinenler = silinenler.filter(g => g.id !== id);
   localStorage.setItem("silinenler", JSON.stringify(silinenler));
 
-  goreviKaydet(geriYuklenecek);
+  let gorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
+  gorevler.push(geriYuklenecek);
+  localStorage.setItem("gorevler", JSON.stringify(gorevler));
+
   listeyeGorevEkleArayuz(geriYuklenecek);
+  updateTaskStats();
 }
 
 function hafizadanTamamenSil(id) {
   let silinenler = JSON.parse(localStorage.getItem("silinenler") || "[]");
   silinenler = silinenler.filter(g => g.id !== id);
   localStorage.setItem("silinenler", JSON.stringify(silinenler));
+  updateTaskStats();
 }
 
 function durumGuncelle(id, yeniDurum) {
@@ -259,6 +304,7 @@ function durumGuncelle(id, yeniDurum) {
     return gorev;
   });
   localStorage.setItem("gorevler", JSON.stringify(gorevler));
+  updateTaskStats();
 }
 
 function gorevGuncelle(id, yeniMetin) {
@@ -271,3 +317,22 @@ function gorevGuncelle(id, yeniMetin) {
   });
   localStorage.setItem("gorevler", JSON.stringify(gorevler));
 }
+const toggleButton = document.getElementById('theme-toggle');
+const currentTheme = localStorage.getItem('theme');
+if (currentTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  toggleButton.textContent = '☀️ Light Mode';
+}
+toggleButton.addEventListener('click', () => {
+  let theme = document.documentElement.getAttribute('data-theme');
+  
+  if (theme === 'dark') {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('theme', 'light');
+    toggleButton.textContent = '🌙 Dark Mode';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+    toggleButton.textContent = '☀️ Light Mode';
+  }
+});

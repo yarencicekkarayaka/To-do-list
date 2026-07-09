@@ -1,12 +1,14 @@
-* {
+* 
+{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-body {
-    background: linear-gradient(135deg, #030508 0%, #1e1b4b 50%, #610051 100%);
+body 
+{
+    background: linear-gradient(135deg, #c1cad6 0%, #b5afff 50%, #ffb1f2 100%);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -15,11 +17,11 @@ body {
     color: #f8fafc;
 }
 
-.modern-kart-premium {
+.modern-kart-premium 
+{
     background: rgba(255, 255, 255, 0.96);
     padding: 35px;
     border-radius: 28px;
-    /* Derinlik katan ve hafif renk yansıtan premium gölge */
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.15);
     width: 100%;
     max-width: 540px;
@@ -27,7 +29,8 @@ body {
     color: #ff45d4;
 }
 
-h2 { 
+h2 
+{ 
     text-align: center;
     margin-bottom: 25px; 
     font-size: 26px;
@@ -40,18 +43,21 @@ h2 {
     -webkit-text-fill-color: transparent;
     color: transparent; /
 }
-.giris-alani {
+.giris-alani 
+{
     display: flex;
     gap: 10px;
     margin-bottom: 25px;
 }
 
-.input-grubu {
+.input-grubu 
+{
     flex: 1;
     position: relative;
 }
 
-input {
+input 
+{
     width: 100%;
     padding: 14px 18px;
     border: 2px solid #e2e8f0;
@@ -64,13 +70,15 @@ input {
     transition: all 0.25s ease;
 }
 
-input:focus {
+input:focus 
+{
     background-color: #ffffff;
     border-color: #ca0a8a;
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
 
-.onerilenler-kutusu {
+.onerilenler-kutusu 
+{
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
@@ -85,7 +93,8 @@ input:focus {
     display: none;
 }
 
-.oneri-elemani {
+.oneri-elemani 
+{
     padding: 12px 18px;
     cursor: pointer;
     font-size: 14px;
@@ -94,17 +103,20 @@ input:focus {
     transition: all 0.2s;
 }
 
-.oneri-elemani:hover {
+.oneri-elemani:hover 
+{
     background-color: #f1f5f9;
     color: #1e293b;
 }
 
-.oneri-elemani strong {
+.oneri-elemani strong 
+{
     color: #cc0a85;
     font-weight: 600;
 }
 
-.canli-btn {
+.canli-btn 
+{
     padding: 0 20px;
     color: white;
     border: none;
@@ -117,37 +129,45 @@ input:focus {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.canli-btn:hover {
+.canli-btn:hover 
+{
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-.canli-btn:active {
+.canli-btn:active 
+{
     transform: translateY(0);
 }
 
-.ekle-btn {
+.ekle-btn 
+{
     background: linear-gradient(135deg, #cd0e67 0%, #cd0e67 0%);
 }
-.ekle-btn:hover {
+.ekle-btn:hover 
+{
     background: linear-gradient(135deg, #cd0e67 0%, #cd0e67 0%);
 }
 
-.tumunu-sil-btn {
+.tumunu-sil-btn 
+{
     background: linear-gradient(135deg, #0b0ebb 0%, #0f0cdd 100%);
 }
-.tumunu-sil-btn:hover {
+.tumunu-sil-btn:hover 
+{
     background: linear-gradient(135deg, #0b0ebb 0%, #0f0cdd 100%);
 }
 
-ul {
+ul 
+{
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-li {
+li 
+{
     padding: 14px 20px;
     background: #f8fafc;
     border: 1px solid #f1f5f9;
@@ -160,12 +180,14 @@ li {
     text-shadow: #000000;
 }
 
-li:hover {
+li:hover 
+{
     background: #f1f5f9;
     transform: scale(1.01);
 }
 
-li span {
+li span 
+{
     word-break: break-all;
     flex: 1;
     font-size: 15px;
@@ -176,13 +198,15 @@ li span {
     transition: color 0.2s ease;
 }
 
-.tamamlandi {
+.tamamlandi 
+{
     text-decoration: line-through;
     color: #94a3b8 !important;
     opacity: 0.5;
 }
 
-.silme-butonu, .geri-al-butonu {
+.silme-butonu, .geri-al-butonu 
+{
     padding: 8px 14px;
     font-size: 12px;
     font-weight: 600;
@@ -194,43 +218,51 @@ li span {
     transition: all 0.2s ease;
 }
 
-.silme-butonu {
+.silme-butonu 
+{
     background-color: #fee2e2;
     color: #ef4444;
 }
-.silme-butonu:hover { 
+.silme-butonu:hover 
+{ 
     background-color: #ef4444; 
     color: white;
 }
 
-.geri-al-butonu {
+.geri-al-butonu 
+{
     background-color: #e0f2fe;
     color: #0ea5e9;
 }
-.geri-al-butonu:hover { 
+.geri-al-butonu:hover 
+{ 
     background-color: #0ea5e9; 
     color: white;
 }
 
-.buton-grubu {
+.buton-grubu 
+{
     display: flex;
     gap: 8px;
 }
 
-.hafiza-bolum {
+.hafiza-bolum 
+{
     margin-top: 30px;
     padding-top: 25px;
     border-top: 2px dashed #e2e8f0;
 }
 
-.hafiza-baslik-alani {
+.hafiza-baslik-alani 
+{
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.hafiza-bolum h3 {
+.hafiza-bolum h3 
+{
     font-size: 16px;
     font-weight: 600;
     color: #64748b;
@@ -239,7 +271,8 @@ li span {
     gap: 6px;
 }
 
-.kutuyu-bosalt-btn {
+.kutuyu-bosalt-btn 
+{
     height: 36px;
     padding: 0 14px;
     font-size: 12px;
@@ -249,14 +282,100 @@ li span {
     border-radius: 10px;
 }
 
-.kutuyu-bosalt-btn:hover {
+.kutuyu-bosalt-btn:hover 
+{
     background: #b51668;
     color: white;
     border-color: #8d1553;
 }
 
-#hafiza-listesi li {
+#hafiza-listesi li 
+{
     background-color: #fafafa;
     border-style: dotted;
     border-color: #cbd5e1;
+}
+:root 
+{
+  --bg-gradient: linear-gradient(135deg, #ceadff, #ff6ec8);
+  --card-bg: #f7f8fa;
+  --text-color: #333333;
+}
+[data-theme="dark"] 
+{
+  --bg-gradient: linear-gradient(135deg, #01014a, #3b034e);
+  --card-bg: #1e1e2f;
+  --text-color: #ffffff;
+}
+body 
+{
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  transition: background 0.4s ease;
+}
+.todo-container 
+{
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+.theme-btn 
+{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-btn:hover 
+{
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+.task-stats 
+s{
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 20px;
+  color: var(--text-color);
+  text-align: center;
+  opacity: 0.85;
+  letter-spacing: 0.5px;
+}
+
+#total-tasks 
+{
+  color: #ca0a8a;
+}
+[data-theme="dark"] #total-tasks 
+{
+  color: #ff6ec8;
+}
+
+#completed-tasks 
+{
+  color: #10b981;
+}
+.gorev-tarihi {
+  font-size: 11px;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-weight: 600;
+  margin-left: auto;
+}
+[data-theme="dark"] .gorev-tarihi {
+  background-color: #2a2a3d;
+  color: #94a3b8;
 }
