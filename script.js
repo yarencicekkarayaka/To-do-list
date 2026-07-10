@@ -12,10 +12,14 @@ const exportBtn = document.getElementById("export-btn");
 const importBtn = document.getElementById("import-btn");
 const importFile = document.getElementById("import-file");
 
+// YENİ: Filtre değişkeni durumu tracker'ı
+let aktifFiltre = "hepsi";
+
 document.addEventListener("DOMContentLoaded", () => {
   verileriYukle();
   updateTaskStats();
   surukleBirakAktivasyon();
+  filtreEtkinlikleriniTanimla(); // YENİ: Filtre buton dinleyicileri
 });
 
 eklemeButonu.addEventListener("click", gorevEkle);
@@ -134,6 +138,7 @@ function gorevEkle() {
   onerilenlerKutusu.style.display = "none";
   gorevGirisi.focus();
   updateTaskStats();
+  filtreleGorevler(); // Yeni eklenen görevi filtre durumuna göre göster/gizle
 }
 
 function listeyeGorevEkleArayuz(gorevObj) {
@@ -156,6 +161,7 @@ function listeyeGorevEkleArayuz(gorevObj) {
     metinAlani.classList.add("tamamlandi");
   }
   li.appendChild(metinAlani);
+  
   if(gorevObj.kategori) {
       const katBadge = document.createElement("span");
       katBadge.classList.add("badge-kategori");
@@ -176,32 +182,40 @@ function listeyeGorevEkleArayuz(gorevObj) {
       li.appendChild(sonTarihAlani);
   }
 
+  // Görevi Tamamlama Click Olayı
   metinAlani.addEventListener("click", function () {
+    if (li.classList.contains("editing")) return; // Düzenleme modundaysa tamamlama tetiklenmesin
+    
     metinAlani.classList.toggle("tamamlandi");
     const isCompleted = metinAlani.classList.contains("tamamlandi");
     durumGuncelle(gorevObj.id, isCompleted);
     if(isCompleted) {
         li.classList.remove("tarihi-gecmis");
-    } else 
-      {
-        if (gorevObj.sonTarih) 
-          {
+    } else {
+        if (gorevObj.sonTarih) {
             const bugun = new Date(); bugun.setHours(0,0,0,0);
             const bitis = new Date(gorevObj.sonTarih); bitis.setHours(0,0,0,0);
             if (bitis < bugun) li.classList.add("tarihi-gecmis");
           }
       }
     updateTaskStats();
+    filtreleGorevler(); // Durum değiştiği için filtreyi yenile
   });
 
+  // GÜNCELLENDİ: Çift Tıklama ile Düzenleme Modunu Başlatma
   metinAlani.addEventListener("dblclick", function () {
-    const eskiMetin = metinAlani.textContent;
-    const yeniMetin = prompt("Görevi düzenleyin:", eskiMetin);
-    if (yeniMetin !== null && yeniMetin.trim() !== "") {
-      const temizYeniMetin = yeniMetin.trim();
-      gorevGuncelle(gorevObj.id, temizYeniMetin);
-      metinAlani.textContent = temizYeniMetin;
-    }
+    duzenlemeModunuAc(li, metinAlani, gorevObj.id);
+  });
+
+  const butonGrubu = document.createElement("div");
+  butonGrubu.classList.add("buton-grubu");
+
+  // YENİ: Düzenle (Edit) Butonu
+  const duzenleButonu = document.createElement("button");
+  duzenleButonu.classList.add("silme-butonu", "duzenle-btn");
+  duzenleButonu.textContent = "Düzenle";
+  duzenleButonu.addEventListener("click", function() {
+     duzenlemeModunuAc(li, metinAlani, gorevObj.id);
   });
 
   const silButonu = document.createElement("button");
@@ -213,7 +227,10 @@ function listeyeGorevEkleArayuz(gorevObj) {
     updateTaskStats();
   });
 
-  li.appendChild(silButonu);
+  butonGrubu.appendChild(duzenleButonu);
+  butonGrubu.appendChild(silButonu);
+  li.appendChild(butonGrubu);
+  
   li.addEventListener("dragstart", () => li.classList.add("dragging"));
   li.addEventListener("dragend", () => {
       li.classList.remove("dragging");
@@ -221,6 +238,80 @@ function listeyeGorevEkleArayuz(gorevObj) {
   });
 
   gorevListesi.appendChild(li);
+}
+
+// YENİ: Satır içi İnline Düzenleme Fonksiyonu
+function duzenlemeModunuAc(liElement, metinSpan, id) {
+    if (liElement.classList.contains("editing")) return;
+    
+    liElement.classList.add("editing");
+    liElement.draggable = false; // Düzenleme yaparken sürükleme kapansın
+    
+    const eskiMetin = metinSpan.textContent;
+    const inputDuzenle = document.createElement("input");
+    inputDuzenle.type = "text";
+    inputDuzenle.classList.add("duzenleme-input");
+    inputDuzenle.value = eskiMetin;
+    
+    const badgesVeButonlar = [...liElement.children].filter(child => child !== metinSpan);
+    badgesVeButonlar.forEach(el => el.style.display = "none");
+    
+    metinSpan.style.display = "none";
+    liElement.insertBefore(inputDuzenle, metinSpan);
+    inputDuzenle.focus();
+    
+    function kaydet() {
+        const yeniMetin = inputDuzenle.value.trim();
+        if (yeniMetin !== "") {
+            gorevGuncelle(id, yeniMetin);
+            metinSpan.textContent = yeniMetin;
+        }
+        inputDuzenle.remove();
+        metinSpan.style.display = "";
+        badgesVeButonlar.forEach(el => el.style.display = "");
+        liElement.classList.remove("editing");
+        liElement.draggable = true;
+    }
+    
+    inputDuzenle.addEventListener("blur", kaydet);
+    inputDuzenle.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") kaydet();
+    });
+}
+
+// YENİ: Filtreleme Butonlarının Yapılandırılması
+function filtreEtkinlikleriniTanimla() {
+    const filtreButonlari = document.querySelectorAll(".filtre-btn");
+    filtreButonlari.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filtreButonlari.forEach(b => b.classList.remove("aktif"));
+            btn.classList.add("aktif");
+            aktifFiltre = btn.dataset.filter || btn.getAttribute("data-filtre");
+            filtreleGorevler();
+        });
+    });
+}
+
+// YENİ: Görevleri ekrandaki filtreye göre süzme işlemi
+function filtreleGorevler() {
+    const listElemanlari = gorevListesi.querySelectorAll("li");
+    
+    listElemanlari.forEach(li => {
+        const span = li.querySelector("span");
+        const tamamlandiMi = span.classList.contains("tamamlandi");
+        
+        switch (aktifFiltre) {
+            case "hepsi":
+                li.style.display = "flex";
+                break;
+            case "yapilacaklar":
+                li.style.display = !tamamlandiMi ? "flex" : "none";
+                break;
+            case "tamamlananlar":
+                li.style.display = tamamlandiMi ? "flex" : "none";
+                break;
+        }
+    });
 }
 
 function hafizaListesineEkleArayuz(gorevObj) {
@@ -279,6 +370,8 @@ function verileriYukle() {
 
   let silinenler = JSON.parse(localStorage.getItem("silinenler") || "[]");
   silinenler.forEach(gorev => hafizaListesineEkleArayuz(gorev));
+  
+  filtreleGorevler(); // Veriler yüklenince mevcut filtreyi uygula
 }
 
 function tumGorevleriCopeAt() {
@@ -343,6 +436,7 @@ function hafizadanGeriYukle(id) {
 
   listeyeGorevEkleArayuz(geriYuklenecek);
   updateTaskStats();
+  filtreleGorevler(); // Geri yüklenen elemanı filtreye göre kontrol et
 }
 
 function hafizadanTamamenSil(id) {
@@ -374,6 +468,7 @@ function gorevGuncelle(id, yeniMetin) {
   });
   localStorage.setItem("gorevler", JSON.stringify(gorevler));
 }
+
 function surukleBirakAktivasyon() {
     gorevListesi.addEventListener("dragover", e => {
         e.preventDefault();
@@ -410,6 +505,7 @@ function siralamayiKaydet() {
 
     localStorage.setItem("gorevler", JSON.stringify(yeniSiraliDizi));
 }
+
 function verileriDisaAktar() {
     const aktifler = localStorage.getItem("gorevler") || "[]";
     const silinenler = localStorage.getItem("silinenler") || "[]";
@@ -455,6 +551,7 @@ function verileriIceAktar(e) {
     };
     reader.readAsText(file);
 }
+
 const toggleButton = document.getElementById('theme-toggle');
 const currentTheme = localStorage.getItem('theme');
 if (currentTheme === 'dark') {

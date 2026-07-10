@@ -478,3 +478,78 @@ body
     background: #ff6ec8;
     color: #1e1e2f;
 }
+.filtre-satiri
+{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.filtre-btn 
+{
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filtre-btn:hover 
+{
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+.filtre-btn.aktif 
+{
+    background: linear-gradient(135deg, #ca0a8a 0%, #cd0e67 100%);
+    color: white;
+    border-color: transparent;
+}
+
+[data-theme="dark"] .filtre-btn 
+{
+    background-color: #2a2a3d;
+    border-color: #4a4a6a;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .filtre-btn.aktif 
+{
+    background: linear-gradient(135deg, #ca0a8a 0%, #ff6ec8 100%);
+    color: white;
+}
+.duzenleme-input 
+{
+    flex: 1;
+    padding: 6px 12px;
+    border: 2px solid #ca0a8a;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    background-color: white;
+    color: #1e293b;
+}
+
+[data-theme="dark"] .duzenleme-input 
+{
+    background-color: #1e1e2f;
+    color: white;
+    border-color: #ff6ec8;
+}
+
+.duzenle-btn 
+{
+    background-color: #fef7e0;
+    color: #b06000;
+}
+.duzenle-btn:hover 
+{
+    background-color: #b06000;
+    color: white;
+}
