@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium To-Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+    <div class="modern-kart-premium">
+        <div class="aktif-bolum">
+            <h2>To Do List</h2>
+
+            <div class="giris-alani">
+                <div class="input-grubu">
+                    <input type="text" id="gorev-girisi" placeholder="Yeni bir görev yazın..." autocomplete="off">
+                    <div id="onerilenler-kutusu" class="onerilenler-kutusu"></div>
+                </div>
+                <button id="ekleme-butonu" class="canli-btn ekle-btn">Ekle</button>
+                <button id="tumunu-sil-butonu" class="canli-btn tumunu-sil-btn">Tümünü Sil</button>
+            </div>
+            
+            <ul id="gorev-listesi"></ul>
+        </div>
+        <div class="hafiza-bolum">
+            <div class="hafiza-baslik-alani">
+                <h3>Çöp Kutusu</h3>
+                <button id="kutuyu-bosalt-butonu" class="canli-btn kutuyu-bosalt-btn">Temizle</button>
+            </div>
+            <ul id="hafiza-listesi"></ul>
+            <div class="task-stats">
+                ( <span id="total-tasks">0 Görev</span>, <span id="completed-tasks">0 Tamamlandı</span> )
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
