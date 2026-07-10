@@ -5,15 +5,25 @@ const kutuyuBosaltButonu = document.getElementById("kutuyu-bosalt-butonu");
 const gorevListesi = document.getElementById("gorev-listesi");
 const hafizaListesi = document.getElementById("hafiza-listesi");
 const onerilenlerKutusu = document.getElementById("onerilenler-kutusu");
+const oncelikSecimi = document.getElementById("oncelik-secimi");
+const kategoriSecimi = document.getElementById("kategori-secimi");
+const sonTarihSecimi = document.getElementById("son-tarih");
+const exportBtn = document.getElementById("export-btn");
+const importBtn = document.getElementById("import-btn");
+const importFile = document.getElementById("import-file");
 
 document.addEventListener("DOMContentLoaded", () => {
   verileriYukle();
   updateTaskStats();
+  surukleBirakAktivasyon();
 });
 
 eklemeButonu.addEventListener("click", gorevEkle);
 tumunuSilButonu.addEventListener("click", tumGorevleriCopeAt);
 kutuyuBosaltButonu.addEventListener("click", copKutusunuBosalt);
+exportBtn.addEventListener("click", verileriDisaAktar);
+importBtn.addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", verileriIceAktar);
 
 function updateTaskStats() {
   const aktifGorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
@@ -91,6 +101,7 @@ function gorevEkle() {
     alert("Lütfen bir görev yazın!");
     return;
   }
+
   const simdi = new Date();
   const gun = String(simdi.getDate()).padStart(2, '0');
   const ay = String(simdi.getMonth() + 1).padStart(2, '0');
@@ -100,12 +111,26 @@ function gorevEkle() {
   const formatliTarih = `${gun}.${ay}.${yil} ${saat}:${dakika}`;
 
   const yeniId = Date.now().toString();
-  const yeniGorev = { id: yeniId, metin: gorevMetni, tamamlandi: false, tarih: formatliTarih };
+  const oncelik = oncelikSecimi.value;
+  const kategori = kategoriSecimi.value;
+  const sonTarih = sonTarihSecimi.value;
+
+  const yeniGorev = { 
+    id: yeniId, 
+    metin: gorevMetni, 
+    tamamlandi: false, 
+    tarih: formatliTarih,
+    oncelik: oncelik,
+    kategori: kategori,
+    sonTarih: sonTarih
+  };
 
   listeyeGorevEkleArayuz(yeniGorev);
   goreviKaydet(yeniGorev);
-  
   gorevGirisi.value = "";
+  sonTarihSecimi.value = "";
+  oncelikSecimi.value = "orta";
+  kategoriSecimi.value = "Genel";
   onerilenlerKutusu.style.display = "none";
   gorevGirisi.focus();
   updateTaskStats();
@@ -114,6 +139,16 @@ function gorevEkle() {
 function listeyeGorevEkleArayuz(gorevObj) {
   const li = document.createElement("li");
   li.dataset.id = gorevObj.id;
+  li.draggable = true;
+  if (gorevObj.sonTarih && !gorevObj.tamamlandi) {
+      const bugun = new Date();
+      bugun.setHours(0,0,0,0);
+      const bitisTarihi = new Date(gorevObj.sonTarih);
+      bitisTarihi.setHours(0,0,0,0);
+      if (bitisTarihi < bugun) {
+          li.classList.add("tarihi-gecmis");
+      }
+  }
   
   const metinAlani = document.createElement("span");
   metinAlani.textContent = gorevObj.metin;
@@ -121,16 +156,41 @@ function listeyeGorevEkleArayuz(gorevObj) {
     metinAlani.classList.add("tamamlandi");
   }
   li.appendChild(metinAlani);
-  if (gorevObj.tarih) {
-    const tarihAlani = document.createElement("span");
-    tarihAlani.classList.add("gorev-tarihi");
-    tarihAlani.textContent = gorevObj.tarih;
-    li.appendChild(tarihAlani);
+  if(gorevObj.kategori) {
+      const katBadge = document.createElement("span");
+      katBadge.classList.add("badge-kategori");
+      katBadge.textContent = gorevObj.kategori;
+      li.appendChild(katBadge);
+  }
+  if(gorevObj.oncelik) {
+      const prioBadge = document.createElement("span");
+      prioBadge.classList.add("badge-oncelik", `prio-${gorevObj.oncelik}`);
+      prioBadge.textContent = gorevObj.oncelik;
+      li.appendChild(prioBadge);
+  }
+  if (gorevObj.sonTarih) {
+      const sonTarihAlani = document.createElement("span");
+      sonTarihAlani.classList.add("gorev-tarihi");
+      const [y, m, d] = gorevObj.sonTarih.split("-");
+      sonTarihAlani.textContent = `⏳ ${d}.${m}.${y}`;
+      li.appendChild(sonTarihAlani);
   }
 
   metinAlani.addEventListener("click", function () {
     metinAlani.classList.toggle("tamamlandi");
-    durumGuncelle(gorevObj.id, metinAlani.classList.contains("tamamlandi"));
+    const isCompleted = metinAlani.classList.contains("tamamlandi");
+    durumGuncelle(gorevObj.id, isCompleted);
+    if(isCompleted) {
+        li.classList.remove("tarihi-gecmis");
+    } else 
+      {
+        if (gorevObj.sonTarih) 
+          {
+            const bugun = new Date(); bugun.setHours(0,0,0,0);
+            const bitis = new Date(gorevObj.sonTarih); bitis.setHours(0,0,0,0);
+            if (bitis < bugun) li.classList.add("tarihi-gecmis");
+          }
+      }
     updateTaskStats();
   });
 
@@ -154,6 +214,12 @@ function listeyeGorevEkleArayuz(gorevObj) {
   });
 
   li.appendChild(silButonu);
+  li.addEventListener("dragstart", () => li.classList.add("dragging"));
+  li.addEventListener("dragend", () => {
+      li.classList.remove("dragging");
+      siralamayiKaydet();
+  });
+
   gorevListesi.appendChild(li);
 }
 
@@ -167,12 +233,6 @@ function hafizaListesineEkleArayuz(gorevObj) {
     metinAlani.classList.add("tamamlandi");
   }
   li.appendChild(metinAlani);
-  if (gorevObj.tarih) {
-    const tarihAlani = document.createElement("span");
-    tarihAlani.classList.add("gorev-tarihi");
-    tarihAlani.textContent = gorevObj.tarih;
-    li.appendChild(tarihAlani);
-  }
 
   const butonGrubu = document.createElement("div");
   butonGrubu.classList.add("buton-grubu");
@@ -211,6 +271,9 @@ function goreviKaydet(gorevObj) {
 }
 
 function verileriYukle() {
+  gorevListesi.innerHTML = "";
+  if (hafizaListesi) hafizaListesi.innerHTML = "";
+
   let gorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
   gorevler.forEach(gorev => listeyeGorevEkleArayuz(gorev));
 
@@ -220,20 +283,15 @@ function verileriYukle() {
 
 function tumGorevleriCopeAt() {
   let gorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
-  
   if (gorevler.length === 0) {
     alert("Zaten çöp kutusuna atılacak aktif bir görev yok!");
     return;
   }
-
   const onay = confirm("Aktif listedeki TÜM görevleri çöp kutusuna taşımak istiyor musunuz?");
-  
   if (onay) {
     let silinenler = JSON.parse(localStorage.getItem("silinenler") || "[]");
     silinenler.push(...gorevler);
-    
     gorevler.forEach(gorev => hafizaListesineEkleArayuz(gorev));
-
     localStorage.setItem("silinenler", JSON.stringify(silinenler));
     localStorage.removeItem("gorevler");
     gorevListesi.innerHTML = "";
@@ -247,7 +305,6 @@ function copKutusunuBosalt() {
     alert("Çöp kutusu zaten boş!");
     return;
   }
-
   const onay = confirm("Çöp kutusundaki TÜM görevleri geri alınamayacak şekilde tamamen silmek istediğinize emin misiniz?");
   if (onay) {
     hafizaListesi.innerHTML = "";
@@ -316,6 +373,87 @@ function gorevGuncelle(id, yeniMetin) {
     return gorev;
   });
   localStorage.setItem("gorevler", JSON.stringify(gorevler));
+}
+function surukleBirakAktivasyon() {
+    gorevListesi.addEventListener("dragover", e => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(gorevListesi, e.clientY);
+        const dragging = document.querySelector(".dragging");
+        if (afterElement == null) {
+            gorevListesi.appendChild(dragging);
+        } else {
+            gorevListesi.insertBefore(dragging, afterElement);
+        }
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function siralamayiKaydet() {
+    const liElements = [...gorevListesi.querySelectorAll("li")];
+    const mevcutGorevler = JSON.parse(localStorage.getItem("gorevler") || "[]");
+    const yeniSiraliDizi = liElements.map(li => {
+        const id = li.dataset.id;
+        return mevcutGorevler.find(g => g.id === id);
+    }).filter(Boolean);
+
+    localStorage.setItem("gorevler", JSON.stringify(yeniSiraliDizi));
+}
+function verileriDisaAktar() {
+    const aktifler = localStorage.getItem("gorevler") || "[]";
+    const silinenler = localStorage.getItem("silinenler") || "[]";
+    const tema = localStorage.getItem("theme") || "light";
+
+    const dataShed = {
+        gorevler: JSON.parse(aktifler),
+        silinenler: JSON.parse(silinenler),
+        theme: tema
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataShed, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "todo_premium_yedek.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function verileriIceAktar(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            const yuklenenData = JSON.parse(evt.target.result);
+            if (yuklenenData.gorevler || yuklenenData.silinenler) {
+                localStorage.setItem("gorevler", JSON.stringify(yuklenenData.gorevler || []));
+                localStorage.setItem("silinenler", JSON.stringify(yuklenenData.silinenler || []));
+                if(yuklenenData.theme) localStorage.setItem("theme", yuklenenData.theme);
+                
+                alert("Veriler başarıyla içe aktarıldı!");
+                verileriYukle();
+                updateTaskStats();
+            } else {
+                alert("Hatalı dosya formatı!");
+            }
+        } catch (error) {
+            alert("Dosya okunurken bir hata oluştu!");
+        }
+    };
+    reader.readAsText(file);
 }
 const toggleButton = document.getElementById('theme-toggle');
 const currentTheme = localStorage.getItem('theme');
